@@ -1,3 +1,4 @@
+import re
 import socket
 import threading
 
@@ -15,18 +16,24 @@ def handle_client(client_socket: socket.socket) -> None:
                 print("The client has disconnected.")
                 break
 
-            match request:
-                case "ping":
-                    client_socket.sendall(b"pong")
-                case "name":
-                    client_socket.sendall(b"Python Server")
-                case "count":
-                    client_socket.sendall(str(len(clients)).encode())
-                case "bye":
-                    client_socket.sendall(b"Goodbye!")
-                    break
-                case _:
-                    client_socket.sendall(b"Unknown command")
+            if request.startswith("@everyone"):
+                message = request.replace("@everyone", "", 1).strip()
+
+                for client in clients:
+                    client.sendall(message.encode("utf-8"))
+            else:
+                match request:
+                    case "ping":
+                        client_socket.sendall(b"pong")
+                    case "name":
+                        client_socket.sendall(b"Python Server")
+                    case "count":
+                        client_socket.sendall(str(len(clients)).encode())
+                    case "bye":
+                        client_socket.sendall(b"Goodbye!")
+                        break
+                    case _:
+                        client_socket.sendall(b"Unknown command")
 
         except ConnectionResetError:
             print("Client lost connection.")
