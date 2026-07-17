@@ -1,0 +1,20 @@
+[project]
+name = "project-test-socket2"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "LeoR",email = "leorsky77@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas (>=3.0.3,<4.0.0)",
+    "matplotlib (>=3.11.0,<4.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "project_test_socket2", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
