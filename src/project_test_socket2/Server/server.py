@@ -32,8 +32,11 @@ def handle_client(client_socket: socket.socket) -> None:
             print("Client lost connection.")
             break
 
+    clients.remove(client_socket)
     client_socket.close()
-    print('Client disconnected')
+
+    print("Client disconnected.")
+    print(f"Connected clients: {len(clients)}")
 
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
