@@ -1,4 +1,3 @@
-import re
 import socket
 import threading
 
@@ -7,39 +6,48 @@ PORT = 8000
 
 clients = []
 
+
 def handle_client(client_socket: socket.socket) -> None:
     while True:
         try:
             request = client_socket.recv(1024).decode("utf-8")
 
             if not request:
-                print("The client has disconnected.")
+                print("Client disconnected.")
                 break
 
-            if request.startswith("@everyone"):
+            if request == "bye":
+                break
+
+            elif request == "ping":
+                client_socket.sendall(b"pong")
+
+            elif request == "name":
+                client_socket.sendall(b"Python Server")
+
+            elif request == "count":
+                client_socket.sendall(str(len(clients)).encode())
+
+            elif request.startswith("@everyone"):
                 message = request.replace("@everyone", "", 1).strip()
 
                 for client in clients:
-                    client.sendall(message.encode("utf-8"))
+                    if client != client_socket:
+                        try:
+                            client.sendall(message.encode("utf-8"))
+                        except ConnectionResetError:
+                            pass
+
             else:
-                match request:
-                    case "ping":
-                        client_socket.sendall(b"pong")
-                    case "name":
-                        client_socket.sendall(b"Python Server")
-                    case "count":
-                        client_socket.sendall(str(len(clients)).encode())
-                    case "bye":
-                        client_socket.sendall(b"Goodbye!")
-                        break
-                    case _:
-                        client_socket.sendall(b"Unknown command")
+                client_socket.sendall(b"Unknown command")
 
         except ConnectionResetError:
-            print("Client lost connection.")
+            print("Connection lost.")
             break
 
-    clients.remove(client_socket)
+    if client_socket in clients:
+        clients.remove(client_socket)
+
     client_socket.close()
 
     print("Client disconnected.")
@@ -57,10 +65,12 @@ while True:
 
     clients.append(client_socket)
 
-    print(f'Client connected: {addr}\n'
-          f'Connected clients: {len(clients)}\n')
+    print(f"Client connected: {addr}")
+    print(f"Connected clients: {len(clients)}")
 
+    thread = threading.Thread(
+        target=handle_client,
+        args=(client_socket,)
+    )
 
-
-    thread = threading.Thread(target=handle_client,args=(client_socket,))
     thread.start()

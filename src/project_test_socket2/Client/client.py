@@ -1,4 +1,5 @@
 import socket
+import threading
 
 HOST = "localhost"
 PORT = 8000
@@ -6,26 +7,37 @@ PORT = 8000
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((HOST, PORT))
 
+
+def receive_messages() -> None:
+    while True:
+        try:
+            message = client_socket.recv(1024).decode("utf-8")
+
+            if not message:
+                print("\nServer closed.")
+                break
+
+            print(f"\nFriend: {message}")
+
+        except (ConnectionResetError, OSError):
+            break
+
+
+receive_thread = threading.Thread(target=receive_messages)
+receive_thread.start()
+
+
 while True:
-    request  = input('Enter your message:')
-
     try:
-        client_socket.sendall(request.encode("utf-8"))
+        message = input("You: ")
 
-        response = client_socket.recv(1024).decode("utf-8")
+        client_socket.sendall(message.encode("utf-8"))
 
-        if not response:
-            print("Connection closed.")
+        if message == "bye":
             break
 
-        print(response)
-
-        if response == "Goodbye!":
-            print("Connection closed.")
-            break
-
-    except ConnectionResetError:
-        print("Connection lost.")
+    except (ConnectionResetError, OSError):
         break
+
 
 client_socket.close()
